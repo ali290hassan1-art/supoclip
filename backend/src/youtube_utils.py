@@ -73,7 +73,7 @@ class YouTubeDownloader:
             "outtmpl": str(output_path),
             # Cap at 1080p. Vertical clips are 1080x1920, and a 4K source
             # multiplies bandwidth without improving the export.
-            "format": video_format_selector(max_height),
+            "format": video_format_selector(max_height, language=language or "hi"),
             "format_sort": ["res", "fps"],
             "merge_output_format": "mp4",
             "writesubtitles": False,
@@ -106,7 +106,7 @@ class YouTubeDownloader:
             "age_limit": None,
             "extractor_args": {
                 "youtube": {
-                    "player_client": ["ios", "android"],
+                    "player_client": ["web", "android"],
                 }
             },
         }
@@ -133,7 +133,7 @@ def _build_info_options(task_id: Optional[str] = None) -> Dict[str, Any]:
         "nocheckcertificate": True,
         "extractor_args": {
             "youtube": {
-                "player_client": ["ios", "android"],
+                "player_client": ["web", "android"],
             }
         },
     }
@@ -621,8 +621,17 @@ def _download_youtube_video_with_ytdlp(
         return None
 
     downloader = YouTubeDownloader()
-    # This is the independent datacenter fallback. yt-dlp extracts metadata
-    # during download; a separate proxied lookup must not gate this route.
+    target_lang = "hi"
+    if task_id:
+        try:
+            from .database import SyncSessionLocal
+            from .models import Task
+            with SyncSessionLocal() as session:
+                task_row = session.query(Task).filter(Task.id == task_id).first()
+                if task_row and task_row.source_metadata:
+                    target_lang = task_row.source_metadata.get("audio_language") or "hi"
+        except Exception:
+            target_lang = "hi"
 
     last_error: Optional[str] = None
 
@@ -631,7 +640,7 @@ def _download_youtube_video_with_ytdlp(
             logger.info("Download attempt %s/%s", attempt + 1, max_retries)
 
             ydl_opts = downloader.get_optimal_download_options(
-                video_id, int(quality) if quality else None
+                video_id, int(quality) if quality else None, language=target_lang
             )
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:

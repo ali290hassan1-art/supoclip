@@ -312,6 +312,7 @@ def build_final_video_encode_args(
     needs 4.2 or x264 rejects the stream.
     """
     return [
+        "-threads", "2",
         "-c:v", "libx264",
         "-preset", preset,
         "-crf", str(crf),

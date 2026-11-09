@@ -531,6 +531,7 @@ async def _create_task(request: Request, db: AsyncSession, attempt: SourceAttemp
         clip_length = validate_clip_length(data.get("clip_length", "auto"))
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from None
+    audio_language = str(data.get("audio_language", "hi") or "hi").strip().lower()
     cleanup_settings = new_task_cleanup_settings(data)
     if not raw_source or not raw_source.get("url"):
         raise HTTPException(status_code=400, detail="Source URL is required")
@@ -626,6 +627,7 @@ async def _create_task(request: Request, db: AsyncSession, attempt: SourceAttemp
                         {
                             "processing_job_id": processing_job_id,
                             "clip_length": clip_length,
+                            "audio_language": audio_language,
                             **_stream_resolution_metadata(stream_metadata),
                         },
                         source_url=raw_source["url"],

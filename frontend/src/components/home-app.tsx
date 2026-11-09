@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   AlertCircle, ArrowRight, ArrowUp, Captions, CaptionsOff, Check, ChevronDown, Clapperboard, Crop, FileVideo,
-  Loader2, Timer, Paperclip, Upload, Link2, Wand2, X,
+  Loader2, Timer, Paperclip, Upload, Link2, Wand2, X, Languages,
 } from "lucide-react";
 import { CaptionSizeControl } from "@/components/caption-size-control";
 import { VideoSourceIcon } from "@/components/video-source-icon";
@@ -46,6 +46,22 @@ interface CaptionTemplate {
   font_size?: number;
   font_color?: string;
 }
+
+const AUDIO_LANGUAGES = [
+  { code: "hi", label: "Hindi (हिन्दी)", flag: "🇮🇳" },
+  { code: "ur", label: "Urdu (اردو)", flag: "🇵🇰" },
+  { code: "en", label: "English", flag: "🇬🇧" },
+  { code: "auto", label: "Auto-detect", flag: "🌐" },
+  { code: "es", label: "Spanish (Español)", flag: "🇪🇸" },
+  { code: "ar", label: "Arabic (العربية)", flag: "🇸🇦" },
+  { code: "pt", label: "Portuguese", flag: "🇧🇷" },
+  { code: "ru", label: "Russian (Русский)", flag: "🇷🇺" },
+  { code: "de", label: "German (Deutsch)", flag: "🇩🇪" },
+  { code: "fr", label: "French (Français)", flag: "🇫🇷" },
+  { code: "id", label: "Indonesian", flag: "🇮🇩" },
+  { code: "ja", label: "Japanese (日本語)", flag: "🇯🇵" },
+  { code: "ko", label: "Korean (한국어)", flag: "🇰🇷" },
+];
 
 type OutputFormat = "vertical" | "vertical_fit" | "vertical_pan" | "vertical_split" | "original";
 
@@ -94,6 +110,7 @@ export default function HomeApp() {
   const [availableTemplates, setAvailableTemplates] = useState<CaptionTemplate[]>([]);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>("vertical");
   const [clipLength, setClipLength] = useState<ClipLength>("auto");
+  const [audioLanguage, setAudioLanguage] = useState<string>("hi");
   const [clipLengthSaveError, setClipLengthSaveError] = useState(false);
   const [isClipLengthLoading, setIsClipLengthLoading] = useState(false);
   const clipLengthEdited = useRef(false);
@@ -324,6 +341,7 @@ export default function HomeApp() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source: { url: videoUrl, title: sourceType === "upload" && file?.name ? file.name.slice(0, 500) : null },
+          audio_language: audioLanguage,
           font_options: fontOptions,
           caption_template: captionTemplate,
           processing_mode: "fast",
@@ -492,6 +510,42 @@ export default function HomeApp() {
                   <Paperclip className="size-3.5" /><span className="hidden sm:inline">{t("upload")}</span>
                 </Chip>
               )}
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Chip disabled={controlsDisabled} active={audioLanguage !== "auto"} aria-label="Audio Language">
+                    <Languages className="size-3.5" />
+                    <span>{AUDIO_LANGUAGES.find((l) => l.code === audioLanguage)?.label || "Audio"}</span>
+                    <ChevronDown className="size-3 opacity-60" />
+                  </Chip>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-64 rounded-2xl p-3">
+                  <p className="mb-2 text-sm font-medium">Audio Language (Dubbing)</p>
+                  <div role="radiogroup" aria-label="Audio Language" className="max-h-60 overflow-y-auto grid gap-1 pr-1">
+                    {AUDIO_LANGUAGES.map((lang) => (
+                      <button
+                        type="button"
+                        role="radio"
+                        aria-checked={audioLanguage === lang.code}
+                        disabled={controlsDisabled}
+                        key={lang.code}
+                        onClick={() => setAudioLanguage(lang.code)}
+                        className={cn(
+                          "flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm hover:bg-muted disabled:opacity-50 text-left",
+                          audioLanguage === lang.code && "bg-muted font-medium"
+                        )}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </span>
+                        {audioLanguage === lang.code && <Check className="size-4 shrink-0 text-primary" />}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">Select audio track (e.g. Hindi for MrBeast).</p>
+                </PopoverContent>
+              </Popover>
 
               <Popover>
                 <PopoverTrigger asChild>

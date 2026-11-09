@@ -383,7 +383,7 @@ def base_proxy_params(task_id: Optional[str] = None, video_id: Optional[str] = N
         },
         "extractor_args": {
             "youtube": {
-                "player_client": ["ios", "android"],
+                "player_client": ["web", "android"],
             }
         },
     }
@@ -1183,11 +1183,11 @@ def extract_video_info(url: str, options: dict[str, Any]) -> dict:
     params.pop("download_ranges", None)
     params.update({"skip_download": True, "quiet": True, "noplaylist": True})
     if "extractor_args" not in params:
-        params["extractor_args"] = {"youtube": {"player_client": ["ios", "android"]}}
+        params["extractor_args"] = {"youtube": {"player_client": ["web", "android"]}}
     elif "youtube" not in params["extractor_args"]:
-        params["extractor_args"]["youtube"] = {"player_client": ["ios", "android"]}
+        params["extractor_args"]["youtube"] = {"player_client": ["web", "android"]}
     elif "player_client" not in params["extractor_args"]["youtube"]:
-        params["extractor_args"]["youtube"]["player_client"] = ["ios", "android"]
+        params["extractor_args"]["youtube"]["player_client"] = ["web", "android"]
     with _proxy_client(params) as ydl:
         info = ydl.extract_info(url, download=False)
     if not isinstance(info, dict):
