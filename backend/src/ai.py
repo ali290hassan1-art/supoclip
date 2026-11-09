@@ -35,14 +35,14 @@ IDEAL_CLIP_MAX_SECONDS = 50
 MIN_ACCEPTED_CLIP_SECONDS = 15
 MAX_ACCEPTED_CLIP_SECONDS = 60
 TRANSCRIPT_ANALYSIS_CACHE_VERSION = "windowed-rerank-v6"
-TRANSCRIPT_ANALYSIS_MAX_ATTEMPTS = 3
+TRANSCRIPT_ANALYSIS_MAX_ATTEMPTS = 5
 TRANSCRIPT_ANALYSIS_TIMEOUT_SECONDS = 600
 # Long transcripts are analysed in overlapping windows so every part of the
 # source gets the model's full attention; candidates are then reranked together.
 ANALYSIS_WINDOW_SECONDS = 12 * 60
 ANALYSIS_WINDOW_OVERLAP_SECONDS = 2 * 60
-ANALYSIS_SINGLE_WINDOW_MAX_SECONDS = 15 * 60
-ANALYSIS_WINDOW_CONCURRENCY = 3
+ANALYSIS_SINGLE_WINDOW_MAX_SECONDS = 90 * 60
+ANALYSIS_WINDOW_CONCURRENCY = 1
 ANALYSIS_WINDOW_SEGMENT_TARGET = "3-5"
 # Wall-clock budget for all windows together. Each window additionally keeps
 # its own TRANSCRIPT_ANALYSIS_TIMEOUT_SECONDS budget once it starts running.
@@ -936,14 +936,22 @@ def _sanitize_hook_span(
 
 
 def _parse_transcript_timestamp_seconds(timestamp: str) -> int:
-    """Parse MM:SS or HH:MM:SS transcript timestamps into seconds."""
-    parts = [int(part) for part in timestamp.split(":")]
-    if len(parts) == 2:
-        minutes, seconds = parts
-        return minutes * 60 + seconds
-    if len(parts) == 3:
-        hours, minutes, seconds = parts
-        return hours * 3600 + minutes * 60 + seconds
+    """Parse MM:SS, HH:MM:SS, or seconds timestamps (e.g. 518.7s) into integer seconds."""
+    if not timestamp:
+        raise ValueError("Empty timestamp")
+    ts = str(timestamp).strip().rstrip("sS").split(",")[0].strip()
+    if ":" in ts:
+        parts = [int(float(part)) for part in ts.split(":")]
+        if len(parts) == 2:
+            minutes, seconds = parts
+            return minutes * 60 + seconds
+        if len(parts) == 3:
+            hours, minutes, seconds = parts
+            return hours * 3600 + minutes * 60 + seconds
+    try:
+        return int(float(ts))
+    except (ValueError, TypeError):
+        pass
     raise ValueError(f"Unsupported timestamp format: {timestamp}")
 
 

@@ -253,6 +253,7 @@ def _ydl_options(provider, output, *, audio=False, ranges=None, session=None, so
         "outtmpl": str(output), "noplaylist": True, "quiet": True, "no_warnings": True,
         "retries": 1, "fragment_retries": 3, "socket_timeout": socket_timeout,
         "max_filesize": c.youtube_download_max_bytes,
+        "extractor_args": {"youtube": {"player_client": ["ios", "android"]}},
     }
     if provider == "proxy":
         if not c.youtube_proxy_url:

@@ -435,7 +435,7 @@ services:
     healthcheck:
       test: ["CMD", ".venv/bin/arq", "--check", "src.workers.tasks.WorkerSettings"]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 3
       start_period: 60s
 
@@ -464,7 +464,7 @@ services:
     healthcheck:
       test: ["CMD", ".venv/bin/arq", "--check", "src.workers.ai_worker.AIWorkerSettings"]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 3
       start_period: 60s
 

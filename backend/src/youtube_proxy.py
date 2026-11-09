@@ -206,15 +206,32 @@ def capped_height(value: int | None = None, config=None) -> int:
     return max(144, min(height, 1080))
 
 
-def video_format_selector(height: int | None = None) -> str:
+def video_format_selector(height: int | None = None, language: str | None = None) -> str:
     limit = capped_height(height)
-    return f"bv*[height<={limit}]+ba/b[height<={limit}]"
+    if language and language != "default":
+        return (
+            f"bv*[height<={limit}]+ba[language^={language}]/"
+            f"bv*[height<={limit}]+ba/"
+            f"b[height<={limit}]/best"
+        )
+    return (
+        f"bv*[height<={limit}]+ba[language^=hi]/"
+        f"bv*[height<={limit}]+ba[language^=Hindi]/"
+        f"bv*[height<={limit}]+ba/"
+        f"b[height<={limit}]/best"
+    )
 
 
-def audio_format_selector() -> str:
+def audio_format_selector(language: str | None = None) -> str:
     # Format 140 is the common 128kbps m4a track. Modest bitrate keeps the
     # full-duration audio pass near ~0.06 GB per source hour.
-    return "ba[ext=m4a][abr<=160]/140/ba[ext=m4a]/ba"
+    if language and language != "default":
+        return f"ba[language^={language}][ext=m4a]/ba[language^={language}]/ba[ext=m4a][abr<=160]/140/ba"
+    return (
+        "ba[language^=hi][ext=m4a]/ba[language^=hi]/"
+        "ba[language^=Hindi][ext=m4a]/ba[language^=Hindi]/"
+        "ba[ext=m4a][abr<=160]/140/ba"
+    )
 
 
 def sticky_session_id(task_id: Optional[str], video_id: Optional[str] = None) -> str:
@@ -364,12 +381,15 @@ def base_proxy_params(task_id: Optional[str] = None, video_id: Optional[str] = N
             ),
             "Accept-Language": "en-US,en;q=0.9",
         },
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["ios", "android"],
+            }
+        },
     }
     pot_url = (getattr(runtime, "youtube_pot_provider_url", "") or "").strip()
     if pot_url:
-        params["extractor_args"] = {
-            "youtubepot-bgutilhttp": {"base_url": [pot_url]},
-        }
+        params["extractor_args"]["youtubepot-bgutilhttp"] = {"base_url": [pot_url]}
     if shutil.which("deno"):
         # yt-dlp needs a JS runtime for YouTube's player challenge. Prefer the
         # deno binary installed in the image; do not pin a player client.
@@ -1162,6 +1182,12 @@ def extract_video_info(url: str, options: dict[str, Any]) -> dict:
     params = dict(options)
     params.pop("download_ranges", None)
     params.update({"skip_download": True, "quiet": True, "noplaylist": True})
+    if "extractor_args" not in params:
+        params["extractor_args"] = {"youtube": {"player_client": ["ios", "android"]}}
+    elif "youtube" not in params["extractor_args"]:
+        params["extractor_args"]["youtube"] = {"player_client": ["ios", "android"]}
+    elif "player_client" not in params["extractor_args"]["youtube"]:
+        params["extractor_args"]["youtube"]["player_client"] = ["ios", "android"]
     with _proxy_client(params) as ydl:
         info = ydl.extract_info(url, download=False)
     if not isinstance(info, dict):

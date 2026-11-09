@@ -326,8 +326,12 @@ export default function TaskPage() {
         setTask(taskData);
         return true;
       } catch (err) {
-        console.error("Error fetching task data:", err);
-        if (!background) setError(err instanceof Error ? err.message : t("errors.load"));
+        if (!background) {
+          console.error("Error fetching task data:", err);
+          setError(err instanceof Error ? err.message : t("errors.load"));
+        } else {
+          console.warn("Transient background task polling notice:", err);
+        }
         return false;
       }
     },

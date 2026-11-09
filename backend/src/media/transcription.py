@@ -280,6 +280,7 @@ def transcribe_with_youtube_captions(video_url: str) -> Optional[str]:
             "subtitlesformat": "vtt",
             "skip_download": True,
             "outtmpl": str(temp_dir / video_id),
+            "extractor_args": {"youtube": {"player_client": ["ios", "android"]}},
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])

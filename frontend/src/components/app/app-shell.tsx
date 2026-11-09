@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowRight, Bot, ChartColumn, CornerDownLeft, Film, LogOut, Plus, Search, Settings, Share2, Shield, Sparkles,
+  ArrowRight, Bot, ChartColumn, Clapperboard, CornerDownLeft, Film, LogOut, Plus, Search, Settings, Share2, Shield, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { signOut, useSession } from "@/lib/auth-client";
@@ -27,10 +27,11 @@ import { cn } from "@/lib/utils";
 
 // `mobile: false` keeps an item out of the five-slot mobile tab bar.
 // `social: true` items only show when social publishing is enabled for the user.
-type NavItem = { href: string; labelKey: "create" | "library" | "social" | "analytics" | "agents" | "settings"; icon: typeof Film; match: (path: string) => boolean; mobile?: boolean; social?: boolean };
+type NavItem = { href: string; labelKey: "create" | "studio" | "library" | "social" | "analytics" | "agents" | "settings"; icon: typeof Film; match: (path: string) => boolean; mobile?: boolean; social?: boolean };
 
 const NAV: NavItem[] = [
   { href: "/", labelKey: "create", icon: Sparkles, match: (p) => p === "/" },
+  { href: "/studio", labelKey: "studio", icon: Clapperboard, match: (p) => p.startsWith("/studio") },
   { href: "/list", labelKey: "library", icon: Film, match: (p) => p.startsWith("/list") || p.startsWith("/tasks") },
   { href: "/settings/social", labelKey: "social", icon: Share2, match: (p) => p.startsWith("/settings/social"), social: true },
   { href: "/analytics", labelKey: "analytics", icon: ChartColumn, match: (p) => p.startsWith("/analytics"), social: true },

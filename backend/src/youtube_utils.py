@@ -104,6 +104,11 @@ class YouTubeDownloader:
             "nocheckcertificate": True,
             "prefer_insecure": False,
             "age_limit": None,
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["ios", "android"],
+                }
+            },
         }
 
         return opts
@@ -126,6 +131,11 @@ def _build_info_options(task_id: Optional[str] = None) -> Dict[str, Any]:
             "Connection": "keep-alive",
         },
         "nocheckcertificate": True,
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["ios", "android"],
+            }
+        },
     }
     if proxy_configured():
         # Metadata must leave through the same proxy as the media, or YouTube

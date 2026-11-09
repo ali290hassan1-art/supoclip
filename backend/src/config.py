@@ -60,8 +60,7 @@ class Config:
         # the backend runs under amd64 emulation.
         self.youtube_preflight_timeout_seconds = self._get_positive_float_env(
             "YOUTUBE_PREFLIGHT_TIMEOUT_SECONDS",
-            30.0,
-            maximum=180.0,
+            120.0, maximum=180.0,
         )
         # Empty disables the residential-proxy yt-dlp path. Nothing in the
         # download chain changes until this template is set.
@@ -413,7 +412,7 @@ class Config:
         return "yt_dlp"
 
     def resolve_youtube_data_api_key(self) -> str | None:
-        return self.youtube_data_api_key or self.google_api_key
+        return self.youtube_data_api_key
 
     def resolve_ollama_base_url(self) -> str:
         return self.ollama_base_url or self._default_ollama_base_url()
@@ -430,14 +429,14 @@ class Config:
         Falls back to Google for backward compatibility.
         """
         if self.google_api_key:
-            return "google-gla:gemini-3-flash-preview"
+            return "google:gemini-3.1-flash-lite"
         if self.openai_api_key:
             return "openai:gpt-5.2"
         if self.anthropic_api_key:
             return "anthropic:claude-4-sonnet"
         if self.openrouter_api_key:
             return "openrouter:anthropic/claude-sonnet-5.5"
-        return "google-gla:gemini-3-flash-preview"
+        return "google:gemini-3.1-flash-lite"
 
 
 def get_config() -> Config:
